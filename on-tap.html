@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🔁 Ôn tập từ vựng · 汉学</title>
+<style>
+:root{
+  --paper:#f7f3e8;--paper-2:#f4f2e9;--paper-3:#e4dfd2;--ink:#2a2722;--ink-soft:#6b655b;
+  --green:#2f6b5e;--green-soft:#e5f0ec;--green-deep:#1e2d21;
+  --red:#c0392b;--red-soft:#fbe9e6;--kai:'KaiTi','楷体',serif;--ui:'Quicksand',system-ui,sans-serif;
+  --radius:16px;--shadow:0 4px 24px rgba(44,60,44,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--ui);background:var(--paper);color:var(--ink);min-height:100vh;padding-bottom:60px}
+header{background:var(--green-deep);color:#fff;padding:18px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+header a{color:#fff;text-decoration:none;font-size:20px;opacity:.85}
+header a:hover{opacity:1}
+header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.3px}
+.wrap{max-width:720px;margin:0 auto;padding:22px 16px}
+
+/* ---- Trang chủ ôn tập ---- */
+.summary-bar{background:#fff;border:1.5px solid var(--paper-3);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:20px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.summary-bar .big{font-size:28px;font-weight:700;color:var(--green)}
+.summary-bar .lbl{font-size:13px;color:var(--ink-soft)}
+.btn{border:none;border-radius:12px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--ui)}
+.btn-main{background:var(--green);color:#fff}
+.btn-main:hover{background:var(--green-deep)}
+.btn-main:disabled{background:#c8c2b2;cursor:default}
+.item-row{background:#fff;border:1.5px solid var(--paper-3);border-radius:14px;padding:14px 18px;margin-bottom:10px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;transition:.15s}
+.item-row:hover{border-color:var(--green);box-shadow:0 4px 16px rgba(44,60,44,.08)}
+.item-row .ic{font-size:22px;flex:0 0 auto}
+.item-row .info{flex:1;min-width:0}
+.item-row .title{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-row .app{font-size:11.5px;color:var(--ink-soft)}
+.item-row .count{background:var(--green-soft);color:var(--green);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;flex:0 0 auto}
+.empty-msg{text-align:center;padding:60px 20px;color:var(--ink-soft)}
+.empty-msg .big-emoji{font-size:44px;margin-bottom:14px}
+
+/* ---- Phiên ôn tập ---- */
+.progress-wrap{margin-bottom:18px}
+.progress-bar{height:8px;background:var(--paper-3);border-radius:8px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);transition:width .25s}
+.progress-txt{font-size:12px;color:var(--ink-soft);margin-top:6px;text-align:center}
+.qcard{background:#fff;border:1.5px solid var(--paper-3);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:34px 26px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.qcard .han-big{font-family:var(--kai);font-size:56px;color:var(--ink);letter-spacing:2px}
+.qcard .meaning-big{font-size:20px;color:var(--ink);line-height:1.5;max-width:480px}
+.qcard .hint{font-size:12px;color:var(--ink-soft)}
+.speak-btn{border:2px solid var(--green);background:var(--green-soft);color:var(--green);border-radius:50%;
+  width:64px;height:64px;font-size:26px;cursor:pointer}
+.speak-btn:hover{background:var(--green);color:#fff}
+.options{display:grid;gap:10px;margin-top:18px}
+.opt-btn{background:#fff;border:1.5px solid var(--paper-3);border-radius:12px;padding:14px 16px;font-size:16px;
+  cursor:pointer;text-align:left;font-family:var(--kai);transition:.12s}
+.opt-btn.meaning{font-family:var(--ui);font-size:14.5px;text-align:left}
+.opt-btn:hover{border-color:var(--green);background:var(--green-soft)}
+.opt-btn.correct{border-color:var(--green);background:var(--green-soft);color:var(--green-deep);font-weight:700}
+.opt-btn.wrong{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.tf-row{display:flex;gap:12px;margin-top:10px}
+.tf-row button{flex:1;padding:16px;font-size:16px;font-weight:700;border-radius:12px;border:1.5px solid var(--paper-3);
+  background:#fff;cursor:pointer}
+.tf-row button:hover{border-color:var(--green)}
+#typeInput{width:100%;max-width:280px;font-family:var(--kai);font-size:24px;text-align:center;padding:12px;
+  border:1.5px solid var(--paper-3);border-radius:12px;margin-top:8px}
+.feedback{margin-top:16px;padding:12px 16px;border-radius:10px;font-size:14px}
+.feedback.ok{background:var(--green-soft);color:var(--green-deep)}
+.feedback.no{background:var(--red-soft);color:var(--red)}
+.next-btn{margin-top:16px}
+.session-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.session-bar .exit{font-size:13px;color:var(--ink-soft);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:var(--ui)}
+
+/* ---- Kết quả ---- */
+.result-card{background:#fff;border:1.5px solid var(--paper-3);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:36px 26px;text-align:center}
+.result-card .score{font-size:42px;font-weight:700;color:var(--green);margin-bottom:6px}
+.result-card .desc{color:var(--ink-soft);margin-bottom:20px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" title="Về trang chủ">🏠</a>
+  <h1>🔁 Ôn tập từ vựng</h1>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== Trang chủ ôn tập ===== -->
+  <div id="homeView">
+    <div class="summary-bar">
+      <div>
+        <div class="big" id="totalDueCount">0</div>
+        <div class="lbl">từ cần ôn hôm nay (tất cả các bài)</div>
+      </div>
+      <button class="btn btn-main" id="reviewAllBtn">▶ Ôn tất cả hôm nay</button>
+    </div>
+    <div id="itemGroups"></div>
+    <div id="emptyMsg" class="empty-msg hidden">
+      <div class="big-emoji">🎉</div>
+      <div>Không có từ nào cần ôn hôm nay!<br>Quay lại học tiếp rồi ôn sau nhé.</div>
+    </div>
+  </div>
+
+  <!-- ===== Phiên ôn tập ===== -->
+  <div id="reviewView" class="hidden">
+    <div class="session-bar">
+      <button class="exit" id="exitBtn">← Thoát ôn tập</button>
+      <span id="sessionTitle" style="font-size:13px;color:var(--ink-soft)"></span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+      <div class="progress-txt" id="progTxt">Câu 1/1</div>
+    </div>
+    <div class="qcard" id="qcard"></div>
+  </div>
+
+  <!-- ===== Kết quả ===== -->
+  <div id="resultView" class="hidden">
+    <div class="result-card">
+      <div class="score" id="resultScore">0/0</div>
+      <div class="desc" id="resultDesc">Bạn đã ôn xong!</div>
+      <button class="btn btn-main" id="backHomeBtn">Về trang ôn tập</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+<script src="shared-vocab.js"></script>
+<script src="shared-vocab-review.js"></script>
+<script>
+"use strict";
+const VOCAB_BANK_KEY="han_vocab_bank";
+const APP_ICON={"📖 Luyện đọc hiểu":"📖","🎤 Luyện nói":"🎤","🎧 Luyện nghe":"🎧","📝 Viết luận HSK":"📝"};
+
+function loadBank(){ try{ const s=localStorage.getItem(VOCAB_BANK_KEY); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){} return []; }
+function saveBank(){ try{ localStorage.setItem(VOCAB_BANK_KEY, JSON.stringify(bank)); }catch(e){ console.warn("Không lưu được kho từ vựng",e); } }
+
+let bank=loadBank();
+let groups=[];
+let session=null; // {words:[...], idx, correct, wrong:[], curQuestion, title}
+
+function $(s){ return document.querySelector(s); }
+
+/* ---------- Trang chủ ---------- */
+function renderHome(){
+  groups=(window.vocabGroupDueByItem?vocabGroupDueByItem(bank):[])
+    .filter(g=>!g.itemId || typeof occItemExists!=="function" || occItemExists({app:g.app,itemId:g.itemId}));
+  const total=new Set();
+  groups.forEach(g=>g.words.forEach(w=>total.add(w.id)));
+  $("#totalDueCount").textContent=total.size;
+  $("#reviewAllBtn").disabled=total.size===0;
+  const wrap=$("#itemGroups"); wrap.innerHTML="";
+  $("#emptyMsg").classList.toggle("hidden", groups.length>0);
+  groups.forEach(g=>{
+    const row=document.createElement("div"); row.className="item-row";
+    const icon=APP_ICON[g.app]||"🗂";
+    row.innerHTML=`<span class="ic">${icon}</span>
+      <span class="info"><div class="title">${escHtml(g.itemTitle)}</div><div class="app">${escHtml(g.app||"")}</div></span>
+      <span class="count">${g.words.length} từ</span>`;
+    row.onclick=()=>startSession(g.words, g.itemTitle);
+    wrap.appendChild(row);
+  });
+}
+function escHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+$("#reviewAllBtn").onclick=()=>{
+  const seen=new Set(), words=[];
+  groups.forEach(g=>g.words.forEach(w=>{ if(!seen.has(w.id)){ seen.add(w.id); words.push(w); } }));
+  startSession(words,"Tất cả hôm nay");
+};
+
+/* ---------- Phiên ôn tập ---------- */
+function startSession(words,title){
+  const shuffled=words.slice().sort(()=>Math.random()-0.5);
+  session={words:shuffled, idx:0, correct:0, wrong:[], title};
+  $("#homeView").classList.add("hidden");
+  $("#resultView").classList.add("hidden");
+  $("#reviewView").classList.remove("hidden");
+  $("#sessionTitle").textContent=title;
+  nextQuestion();
+}
+$("#exitBtn").onclick=()=>{ session=null; $("#reviewView").classList.add("hidden"); renderHome(); $("#homeView").classList.remove("hidden"); };
+$("#backHomeBtn").onclick=()=>{ $("#resultView").classList.add("hidden"); renderHome(); $("#homeView").classList.remove("hidden"); };
+
+function nextQuestion(){
+  if(!session) return;
+  if(session.idx>=session.words.length){ finishSession(); return; }
+  const word=session.words[session.idx];
+  const pct=Math.round((session.idx)/session.words.length*100);
+  $("#progFill").style.width=pct+"%";
+  $("#progTxt").textContent=`Câu ${session.idx+1}/${session.words.length}`;
+  let q=vocabGenQuestion(word,bank);
+  if(!q){
+    // từ chưa có nghĩa -> bỏ qua, không tính là sai, chỉ nhắc bổ sung
+    session.idx++;
+    nextQuestion();
+    return;
+  }
+  session.curQuestion=q;
+  renderQuestion(q);
+}
+
+function renderQuestion(q){
+  const c=$("#qcard"); c.innerHTML="";
+  if(q.type==="meaning_choice"){
+    c.innerHTML=`<div class="han-big">${escHtml(q.promptHan)}</div><div class="hint">Chọn đúng nghĩa</div>
+      <div class="options" id="optWrap"></div>`;
+    buildChoiceOptions(q,false);
+  } else if(q.type==="word_choice"){
+    c.innerHTML=`<div class="meaning-big">${escHtml(q.promptMeaning)}</div><div class="hint">Chọn đúng chữ Hán</div>
+      <div class="options" id="optWrap"></div>`;
+    buildChoiceOptions(q,true);
+  } else if(q.type==="listen_choice"){
+    c.innerHTML=`<button class="speak-btn" id="speakBtn">🔊</button><div class="hint">Nghe rồi chọn đúng chữ Hán</div>
+      <div class="options" id="optWrap"></div>`;
+    $("#speakBtn").onclick=()=>speak(q.speak);
+    buildChoiceOptions(q,true);
+    speak(q.speak);
+  } else if(q.type==="true_false"){
+    c.innerHTML=`<div class="han-big">${escHtml(q.promptHan)}</div>
+      <div class="meaning-big">${escHtml(q.shown)}</div>
+      <div class="hint">Cặp chữ + nghĩa này đúng hay sai?</div>
+      <div class="tf-row"><button id="btnTrue">✅ Đúng</button><button id="btnFalse">❌ Sai</button></div>`;
+    $("#btnTrue").onclick=()=>answerTF(true);
+    $("#btnFalse").onclick=()=>answerTF(false);
+  } else if(q.type==="type_answer"){
+    c.innerHTML=`<div class="meaning-big">${escHtml(q.promptMeaning)}</div><div class="hint">Gõ đúng chữ Hán</div>
+      <input type="text" id="typeInput" autocomplete="off" autocapitalize="off">
+      <button class="btn btn-main" id="submitTypeBtn" style="margin-top:10px">Kiểm tra</button>`;
+    $("#typeInput").focus();
+    $("#typeInput").addEventListener("keydown",e=>{ if(e.key==="Enter") submitType(); });
+    $("#submitTypeBtn").onclick=submitType;
+  }
+}
+
+function buildChoiceOptions(q,isHan){
+  const wrap=$("#optWrap");
+  q.options.forEach((opt,i)=>{
+    const b=document.createElement("button");
+    b.className="opt-btn"+(isHan?"":" meaning");
+    b.textContent=opt;
+    b.onclick=()=>answerChoice(i,b,wrap);
+    wrap.appendChild(b);
+  });
+}
+function answerChoice(i,btn,wrap){
+  const q=session.curQuestion;
+  const correct=vocabGradeAnswer(q,i);
+  [...wrap.children].forEach((b,idx)=>{
+    b.onclick=null;
+    if(idx===q.correctIndex) b.classList.add("correct");
+    else if(idx===i) b.classList.add("wrong");
+  });
+  finishAnswer(correct);
+}
+function answerTF(val){
+  const q=session.curQuestion;
+  const correct=vocabGradeAnswer(q,val);
+  finishAnswer(correct);
+}
+function submitType(){
+  const q=session.curQuestion;
+  const val=$("#typeInput").value;
+  const correct=vocabGradeAnswer(q,val);
+  $("#typeInput").disabled=true;
+  finishAnswer(correct,val);
+}
+function speak(text){
+  try{
+    if(!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="zh-CN";
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function finishAnswer(correct,typedVal){
+  const q=session.curQuestion;
+  vocabRescheduleAfterAnswer(q.word,correct);
+  saveBank();
+  if(correct) session.correct++; else session.wrong.push(q.word);
+  const c=$("#qcard");
+  const fb=document.createElement("div");
+  fb.className="feedback "+(correct?"ok":"no");
+  if(correct) fb.textContent="✅ Chính xác!";
+  else{
+    let ans=q.answer!==undefined?q.answer:(q.options?q.options[q.correctIndex]:(q.isTrue?"Đúng":"Sai"));
+    fb.textContent="❌ Chưa đúng — đáp án: "+ans;
+  }
+  c.appendChild(fb);
+  const nb=document.createElement("button");
+  nb.className="btn btn-main next-btn"; nb.textContent="Câu tiếp theo →";
+  nb.onclick=()=>{ session.idx++; nextQuestion(); };
+  c.appendChild(nb);
+}
+
+function finishSession(){
+  $("#reviewView").classList.add("hidden");
+  $("#resultView").classList.remove("hidden");
+  const total=session.words.length;
+  $("#resultScore").textContent=session.correct+"/"+total;
+  const pct=total?Math.round(session.correct/total*100):100;
+  let desc="Làm rất tốt! 🎉";
+  if(pct<50) desc="Cần ôn lại nhiều hơn — mấy từ sai sẽ tự hẹn ôn lại sớm.";
+  else if(pct<80) desc="Khá tốt — mấy từ sai đã tự hẹn ôn lại sớm hơn.";
+  $("#resultDesc").textContent=desc;
+  session=null;
+}
+
+renderHome();
+</script>
+</body>
+</html>
