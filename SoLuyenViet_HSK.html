@@ -952,7 +952,10 @@ function vocabSectionHTML(e){
 function vocabChipsHTML(e){
   const cards=cardsForEntry(e.id);
   if(!cards.length) return '<div class="vocab-empty">Chưa có từ. Bôi đen 1 từ trong bài rồi bấm chuột phải → 🔖 Lưu thẻ, hoặc bấm "Thêm từ".</div>';
-  return cards.map(v=>`<button class="vchip" style="${wordStyleCSS(v)}" onclick="openVocabDrawer('${v.id}')">${escapeHtml(v.word||"(trống)")}</button>`).join("");
+  return cards.map(v=>{
+    try{ return `<button class="vchip" style="${wordStyleCSS(v)}" onclick="openVocabDrawer('${v.id}')">${escapeHtml(v.word||"(trống)")}</button>`; }
+    catch(e){ console.warn("vocabChipsHTML: bỏ qua 1 thẻ do lỗi",e,v); return ""; }
+  }).join("");
 }
 function renderVocabChips(e){
   const el=document.getElementById("vocabChips"); if(el) el.innerHTML=vocabChipsHTML(e);

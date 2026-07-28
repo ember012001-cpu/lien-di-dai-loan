@@ -431,7 +431,7 @@ const APP_LABEL="🎤 Luyện nói";
 let vocabBank=[];
 function loadVocabBank(){try{const s=localStorage.getItem(VOCAB_BANK_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a))return a;}}catch(e){}return [];}
 function saveVocabBank(){try{localStorage.setItem(VOCAB_BANK_KEY,JSON.stringify(vocabBank));}catch(e){console.warn("saveVocabBank lỗi",e);}}
-function cardsForPassage(pid){return vocabBank.filter(v=>(v.occurrences||[]).some(o=>o.itemId===pid));}
+function cardsForPassage(pid){return vocabBank.filter(v=>v&&Array.isArray(v.occurrences)&&v.occurrences.some(o=>o&&o.itemId===pid));}
 
 /* ---------- Bước 2b: cơ chế "nhớ đường về" dùng chung giữa 5 app ---------- */
 /* NAV_STACK_KEY, APP_FILE_MAP, navPushAndGo/navBack/navDismiss/renderNavBackPill: xem shared-nav.js (dùng chung cả 4 app) */
@@ -574,7 +574,9 @@ function renderVocab(){const list=$("vlist");if(!cur){list.innerHTML='<div class
   const q=($("vsearch").value||"").trim().toLowerCase();let cards=cardsForPassage(cur.id);
   if(q)cards=cards.filter(c=>(c.word+" "+stripTags(c.content||"")).toLowerCase().includes(q));
   if(!cards.length){list.innerHTML='<div class="vempty">Chưa có thẻ từ.<br>Bôi đen một từ rồi bấm chuột phải → <b>🔖 Lưu thẻ</b>.</div>';return;}list.innerHTML="";
-  cards.forEach(c=>{const wordSz=c.wordFontSize||32,contentSz=c.contentFontSize||15;
+  cards.forEach(c=>{
+   try{
+    const wordSz=c.wordFontSize||32,contentSz=c.contentFontSize||15;
     const el=document.createElement("div");el.className="card";el.dataset.vid=c.id;
     const otherOccs=(c.occurrences||[]).filter(o=>o.itemId!==cur.id).filter(o=>typeof occItemExists!=="function"||occItemExists(o));
     el.innerHTML=`<div class="top"><span class="han" style="font-size:${wordSz}px;${wordStyleCSS(c)};padding:1px 6px;border-radius:5px">${esc(c.word)}</span><button class="mini" data-edit style="margin-left:auto">✏️</button><button class="mini" data-del>🗑</button></div>
@@ -592,7 +594,9 @@ function renderVocab(){const list=$("vlist");if(!cur){list.innerHTML='<div class
     el.querySelector("[data-del]").onclick=(ev)=>{ev.stopPropagation();
       if(!confirm('Xoá thẻ "'+c.word+'" khỏi KHO TỪ VỰNG CHUNG? (ảnh hưởng tất cả app, không chỉ bài này)'))return;
       vocabBank=vocabBank.filter(x=>x.id!==c.id);saveVocabBank();unwrap("vw",c.id);renderVocab();renderReader();};
-    list.appendChild(el);});
+    list.appendChild(el);
+   }catch(e){ console.warn("renderVocab: bỏ qua 1 thẻ do lỗi, các thẻ khác vẫn hiện bình thường",e,c); }
+  });
   if(DB.settings.pinyin)annotatePinyin(list);}
 function renderNotes(){const list=$("vlist");if(!cur){list.innerHTML='<div class="vempty">Mở một bài.</div>';return;}
   const ns=cur.notes||[];if(!ns.length){list.innerHTML='<div class="vempty">Chưa có ghi chú.<br>Bôi đen 1 câu/đoạn → chuột phải → <b>📝 Ghi chú</b>.</div>';return;}list.innerHTML="";

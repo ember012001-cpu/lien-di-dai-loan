@@ -11,8 +11,8 @@
    - Mỗi khi mở 1 bài, tự động lưu 1 điểm khôi phục "trước khi sửa gì".
    - Trong lúc sửa, cứ khoảng 60 giây có thay đổi thì tự lưu thêm 1 điểm
      (không lưu dồn dập, tránh đầy bộ nhớ).
-   - Tối đa giữ 6 điểm gần nhất cho MỖI bài — điểm cũ nhất tự bị xoá khi
-     có điểm mới hơn.
+   - Tối đa giữ 2 điểm gần nhất cho MỖI bài (đã giảm từ 6 xuống 2 để đỡ chiếm bộ nhớ trình
+     duyệt) — điểm cũ nhất tự bị xoá khi có điểm mới hơn.
    - Bấm nút "🕐 Lịch sử" (app tự thêm) để xem danh sách & khôi phục.
    - Trước khi khôi phục, TỰ ĐỘNG lưu thêm 1 điểm của trạng thái hiện tại
      (phòng khi khôi phục nhầm, vẫn có đường quay lại).
@@ -42,7 +42,7 @@
 (function(){
 
 const HIST_KEY="han_item_history_v1";
-const MAX_PER_ITEM=6;
+const MAX_PER_ITEM=2; // giảm từ 6 xuống 2 — đỡ chiếm bộ nhớ trình duyệt (dễ làm bài đọc/thẻ từ lưu không được nếu để nhiều)
 const MIN_INTERVAL_MS=60000; // 60 giây
 
 function loadAll(){
@@ -55,6 +55,24 @@ function saveAll(obj){
     // nên im lặng bỏ qua, không alert/toast làm phiền người dùng.
   }
 }
+
+// DỌN 1 LẦN khi file này vừa tải lên: nếu dữ liệu cũ (từ trước khi giảm xuống còn 2 điểm/bài)
+// vẫn còn giữ nhiều hơn MAX_PER_ITEM điểm cho 1 bài nào đó, cắt bớt ngay — giải phóng bộ nhớ
+// ngay lập tức, không cần đợi có sửa đổi mới mới được dọn.
+(function pruneOnLoad(){
+  try{
+    const all=loadAll();
+    let changed=false;
+    Object.keys(all).forEach(id=>{
+      const list=all[id];
+      if(Array.isArray(list)&&list.length>MAX_PER_ITEM){
+        all[id]=list.slice(list.length-MAX_PER_ITEM);
+        changed=true;
+      }
+    });
+    if(changed) saveAll(all);
+  }catch(e){}
+})();
 
 function fmtTime(ts){
   const d=new Date(ts);

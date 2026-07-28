@@ -50,13 +50,15 @@ function makeTableHTML(rows,cols){
   </div><table class="ins-table">${colgroup}<tbody>${body}</tbody></table></div><p><br></p>`;
 }
 
-window.insertTableAt=function(ed,rows,cols){
+window.insertTableAt=function(ed,rows,cols,preRange){
   if(!ed) return;
   ed.focus();
-  const sel=window.getSelection();
-  let range;
-  if(sel&&sel.rangeCount&&ed.contains(sel.getRangeAt(0).commonAncestorContainer)) range=sel.getRangeAt(0);
-  else{ range=document.createRange(); range.selectNodeContents(ed); range.collapse(false); }
+  let range=preRange;
+  if(!range){
+    const sel=window.getSelection();
+    if(sel&&sel.rangeCount&&ed.contains(sel.getRangeAt(0).commonAncestorContainer)) range=sel.getRangeAt(0);
+    else{ range=document.createRange(); range.selectNodeContents(ed); range.collapse(false); }
+  }
   const tmp=document.createElement("div"); tmp.innerHTML=makeTableHTML(rows,cols);
   const frag=document.createDocumentFragment(); let node; while(node=tmp.firstChild) frag.appendChild(node);
   range.deleteContents(); range.insertNode(frag);

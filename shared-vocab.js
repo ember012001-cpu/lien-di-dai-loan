@@ -74,7 +74,7 @@ window.extractWordStyle=function(el){
 
 // ---- Tạo chuỗi CSS inline từ rec.wordStyle (đậm/nghiêng/gạch chân/gạch ngang/màu chữ/màu nền) ----
 window.wordStyleCSS=function(rec){
-  const st=rec.wordStyle||{};
+  const st=(rec&&rec.wordStyle)||{};
   const parts=[];
   parts.push("font-weight:"+(st.bold?"700":"400"));
   parts.push("font-style:"+(st.italic?"italic":"normal"));
@@ -86,6 +86,7 @@ window.wordStyleCSS=function(rec){
 };
 
 function applyFullStyle(el,rec){
+  if(!el||!rec) return;
   const st=rec.wordStyle||{};
   el.style.fontWeight=st.bold?"700":"400";
   el.style.fontStyle=st.italic?"italic":"normal";

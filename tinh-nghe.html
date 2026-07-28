@@ -1997,7 +1997,7 @@ function renderVocab(filter=''){
   const arr=inThisItem.filter(v=>!f || (v.word||'').toLowerCase().includes(f)
     || (v.pinyin||'').toLowerCase().includes(f) || (v.vi||'').toLowerCase().includes(f));
   if(!arr.length){ list.innerHTML='<div class="muted" style="padding:10px">Chưa có thẻ từ nào trong bài này. Bôi đen từ trong transcript → 🔖, hoặc bấm “＋ Thêm thẻ”.</div>'; return; }
-  arr.forEach(v=>list.appendChild(vcardEl(v)));
+  arr.forEach(v=>{ try{ list.appendChild(vcardEl(v)); }catch(e){ console.warn("renderVocab: bỏ qua 1 thẻ do lỗi, các thẻ khác vẫn hiện bình thường",e,v); } });
 }
 function vcardEl(v){
   const el=document.createElement('div'); el.className='vcard'; el.dataset.id=v.id;
@@ -2485,9 +2485,14 @@ function wireTopbar2Once(){
     tblBtn.addEventListener('click',()=>{
       const ed=document.activeElement&&document.activeElement.isContentEditable?document.activeElement:$('#transcriptEditor');
       if(!ed){ toast('Hãy bấm vào ô transcript/dịch trước.'); return; }
+      // Chụp lại vị trí con trỏ TRƯỚC khi mở hộp thoại hỏi số hàng/cột — prompt() có thể
+      // làm mất vị trí con trỏ đang có, chụp trước để chèn bảng đúng chỗ dù có mất đi nữa.
+      let preRange=null;
+      const sel=window.getSelection();
+      if(sel&&sel.rangeCount&&ed.contains(sel.getRangeAt(0).commonAncestorContainer)) preRange=sel.getRangeAt(0).cloneRange();
       const rows=parseInt(prompt('Số hàng?','3'))||3;
       const cols=parseInt(prompt('Số cột?','3'))||3;
-      insertTableAt(ed,Math.max(1,Math.min(30,rows)),Math.max(1,Math.min(15,cols)));
+      insertTableAt(ed,Math.max(1,Math.min(30,rows)),Math.max(1,Math.min(15,cols)),preRange);
     });
   }
   const paintBtn2=$('#tb2Paint');

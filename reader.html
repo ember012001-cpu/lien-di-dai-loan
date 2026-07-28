@@ -385,6 +385,8 @@ body.quizmode #qlist .qexp b{font-weight:700!important}
     <button class="rbtn" data-cmd="removeFormat" title="Xoá định dạng">🧹</button>
     <span class="rsep"></span>
     <button class="rbtn" id="insTableBtn" title="Chèn bảng">▦ Bảng</button>
+    <span class="rsep"></span>
+    <button class="rbtn" id="unstuckBtn" title="Bấm nếu nghi ngờ trang bị kẹt, không bấm/tô màu được gì">🔧 Khắc phục</button>
     <span class="hint">Thanh chung · chọn chữ rồi bấm · chuột phải để hiện nhanh</span>
   </div>
 
@@ -436,7 +438,7 @@ body.quizmode #qlist .qexp b{font-weight:700!important}
   <div class="tree" id="tree"></div>
   <div class="drawer-foot">
     <div class="fstat" id="fstat">Lưu dữ liệu: <b>bộ nhớ trình duyệt</b></div>
-    <div class="foot-btns"><button id="connectFile">🔗 Kết nối file</button><button id="openFile">📂 Mở file</button><button id="exportBtn">⬇︎ Xuất</button><button id="importBtn">⬆︎ Nhập</button></div>
+    <div class="foot-btns"><button id="connectFile">🔗 Kết nối file</button><button id="openFile">📂 Mở file</button><button id="exportBtn">⬇︎ Xuất</button><button id="importBtn">⬆︎ Nhập</button><button id="storageCheckBtn">🧹 Kiểm tra bộ nhớ</button></div>
     <button class="reconnect" id="reconnectPill" style="display:none">↻ Kết nối lại file dữ liệu</button>
     <input type="file" id="importFile" accept="application/json" hidden>
   </div>
@@ -507,8 +509,40 @@ const VOCAB_BANK_KEY="han_vocab_bank";
 const APP_LABEL="📖 Luyện đọc hiểu";
 let vocabBank=[];
 function loadVocabBank(){try{const s=localStorage.getItem(VOCAB_BANK_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a))return a;}}catch(e){}return [];}
-function saveVocabBank(){try{localStorage.setItem(VOCAB_BANK_KEY,JSON.stringify(vocabBank));}catch(e){console.warn("saveVocabBank lỗi",e);}}
-function cardsForPassage(pid){return vocabBank.filter(v=>(v.occurrences||[]).some(o=>o.itemId===pid));}
+function saveVocabBank(){try{localStorage.setItem(VOCAB_BANK_KEY,JSON.stringify(vocabBank));}catch(e){console.warn("saveVocabBank lỗi",e);if(e&&/quota/i.test(e.name||""))toast("⚠️ Bộ nhớ trình duyệt đầy — THẺ TỪ VỪA SỬA CÓ THỂ CHƯA ĐƯỢC LƯU! Hãy bấm 🔗 Kết nối file để lưu chắc tay.");}scheduleFileWrite();}
+
+// ---- Kiểm tra bộ nhớ trình duyệt đang dùng key nào nhiều nhất, và dọn bớt an toàn ----
+// "Lịch sử" (🕐, tối đa 6 điểm khôi phục MỖI bài, dùng chung cả 4 app) là nơi dễ phình to
+// nhất vì lưu nguyên bản đầy đủ mỗi lần — không phải dữ liệu chính, xoá đi vẫn an toàn,
+// chỉ mất khả năng "khôi phục về bản cũ", không mất bài đọc/thẻ từ hiện tại.
+function storageReport(){
+  const rows=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    const v=localStorage.getItem(k)||"";
+    rows.push({key:k,kb:Math.round(v.length/1024*10)/10});
+  }
+  rows.sort((a,b)=>b.kb-a.kb);
+  return rows;
+}
+$("storageCheckBtn").onclick=()=>{
+  const rows=storageReport();
+  const total=rows.reduce((s,r)=>s+r.kb,0);
+  let msg="📦 Bộ nhớ trình duyệt đang dùng (theo từng mục):\n\n";
+  rows.forEach(r=>{ msg+=`${r.key}: ${r.kb} KB\n`; });
+  msg+=`\nTổng cộng: ${Math.round(total)} KB`;
+  const histRow=rows.find(r=>r.key==="han_item_history_v1");
+  if(histRow&&histRow.kb>50){
+    msg+=`\n\n⚠️ "Lịch sử khôi phục" (han_item_history_v1) đang chiếm ${histRow.kb} KB — đây là dữ liệu PHỤ (điểm khôi phục cũ), không phải bài đọc/thẻ từ chính. Xoá đi AN TOÀN, chỉ mất khả năng khôi phục về bản cũ.\n\nBấm OK để XOÁ dữ liệu "Lịch sử khôi phục" này và giải phóng bộ nhớ ngay?`;
+    if(confirm(msg)){
+      try{ localStorage.removeItem("han_item_history_v1"); toast("Đã xoá lịch sử khôi phục cũ — bộ nhớ đã được giải phóng, thử lưu lại xem đã hết báo lỗi chưa."); }
+      catch(e){ toast("Không xoá được, thử lại sau."); }
+    }
+  } else {
+    alert(msg+"\n\n(Không tìm thấy phần nào bất thường chiếm quá nhiều dung lượng để gợi ý dọn tự động — nếu vẫn báo đầy bộ nhớ, tốt nhất nên dùng 🔗 Kết nối file để lưu ra ngoài, không phụ thuộc bộ nhớ trình duyệt nữa.)");
+  }
+};
+function cardsForPassage(pid){return vocabBank.filter(v=>v&&Array.isArray(v.occurrences)&&v.occurrences.some(o=>o&&o.itemId===pid));}
 
 /* ---------- Bước 2b: cơ chế "nhớ đường về" dùng chung giữa 5 app ---------- */
 /* NAV_STACK_KEY, APP_FILE_MAP, navPushAndGo/navBack/navDismiss/renderNavBackPill: xem shared-nav.js (dùng chung cả 4 app) */
@@ -520,17 +554,32 @@ function goToOccurrence(occ,word){
 }
 /* occFor, extractWordStyle, wordStyleCSS: xem shared-vocab.js (dùng chung cả 4 app) */
 let fwt;function scheduleFileWrite(){if(!fileHandle)return;clearTimeout(fwt);fwt=setTimeout(writeFile,500);}
-async function writeFile(){if(!fileHandle)return;try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(DB,null,2));await w.close();setFileStatus(true);}catch(e){setFileStatus(false,"không ghi được");}}
+async function writeFile(){if(!fileHandle)return;try{const w=await fileHandle.createWritable();const payload=Object.assign({},DB,{_vocabBank:vocabBank});await w.write(JSON.stringify(payload,null,2));await w.close();setFileStatus(true);}catch(e){setFileStatus(false,"không ghi được");}}
 function setFileStatus(c,err){const el=$("fstat");el.innerHTML=c?'Lưu dữ liệu: <b>tự ghi vào file ✓</b>':(err?'Lưu file: <b style="color:#e7a">'+esc(err)+'</b>':'Lưu dữ liệu: <b>bộ nhớ trình duyệt</b>');}
 function fsSupported(){return !!window.showSaveFilePicker;}
 async function connectFile(){if(!fsSupported()){toast("Trình duyệt không hỗ trợ kết nối file. Dùng ⬇︎ Xuất / ⬆︎ Nhập.");return;}
   try{fileHandle=await window.showSaveFilePicker({suggestedName:"han-reader-data.json",types:[{description:"Dữ liệu Hán đọc",accept:{"application/json":[".json"]}}]});await writeFile();await storeHandle();toast("Đã kết nối — app tự lưu vào file này");$("reconnectPill").style.display="none";}catch(e){if(e.name!=="AbortError")toast("Không kết nối được (có thể do mở bằng file://)");}}
 async function openDataFile(){if(!window.showOpenFilePicker){toast("Trình duyệt không hỗ trợ. Dùng ⬆︎ Nhập.");return;}
-  try{const[h]=await window.showOpenFilePicker({types:[{description:"JSON",accept:{"application/json":[".json"]}}]});const f=await h.getFile();const d=JSON.parse(await f.text());if(!d.tree)throw 0;DB=d;fileHandle=h;await storeHandle();normalize();expanded=new Set();DB.sel=null;save();rerenderAll();toast("Đã mở file dữ liệu");$("reconnectPill").style.display="none";}catch(e){if(e.name!=="AbortError")toast("Không mở được file");}}
+  try{const[h]=await window.showOpenFilePicker({types:[{description:"JSON",accept:{"application/json":[".json"]}}]});const f=await h.getFile();const d=JSON.parse(await f.text());if(!d.tree)throw 0;DB=d;
+    if(Array.isArray(d._vocabBank)){
+      // Gộp an toàn: không xoá thẻ từ hiện có trên máy, chỉ thêm/thay thẻ mới hơn từ file
+      const map=new Map(); vocabBank.forEach(v=>{if(v&&v.id)map.set(v.id,v);});
+      d._vocabBank.forEach(v=>{ if(!v||!v.id) return; const old=map.get(v.id);
+        if(!old||(v.updatedAt||0)>=(old.updatedAt||0)) map.set(v.id,v); });
+      vocabBank=[...map.values()]; saveVocabBank();
+    }
+    fileHandle=h;await storeHandle();normalize();expanded=new Set();DB.sel=null;save();rerenderAll();renderVocab();toast("Đã mở file dữ liệu");$("reconnectPill").style.display="none";}catch(e){if(e.name!=="AbortError")toast("Không mở được file");}}
 function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open("hanreader",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej();}catch(e){rej();}});}
 async function storeHandle(){try{const db=await idb();db.transaction("kv","readwrite").objectStore("kv").put(fileHandle,"fh");}catch(e){}}
 async function loadHandle(){try{const db=await idb();return await new Promise(res=>{const rq=db.transaction("kv","readonly").objectStore("kv").get("fh");rq.onsuccess=()=>res(rq.result);rq.onerror=()=>res(null);});}catch(e){return null;}}
-async function reconnect(h){try{const o={mode:"readwrite"};if((await h.queryPermission(o))!=="granted"){if((await h.requestPermission(o))!=="granted"){toast("Chưa cấp quyền");return;}}const f=await h.getFile();const d=JSON.parse(await f.text());if(d.tree){DB=d;normalize();}fileHandle=h;expanded=new Set();if(DB.tree[0])expanded.add(DB.tree[0].id);rerenderAll();setFileStatus(true);$("reconnectPill").style.display="none";toast("Đã kết nối lại file dữ liệu");}catch(e){toast("Không kết nối lại được");}}
+async function reconnect(h){try{const o={mode:"readwrite"};if((await h.queryPermission(o))!=="granted"){if((await h.requestPermission(o))!=="granted"){toast("Chưa cấp quyền");return;}}const f=await h.getFile();const d=JSON.parse(await f.text());if(d.tree){DB=d;normalize();}
+  if(Array.isArray(d._vocabBank)){
+    const map=new Map(); vocabBank.forEach(v=>{if(v&&v.id)map.set(v.id,v);});
+    d._vocabBank.forEach(v=>{ if(!v||!v.id) return; const old=map.get(v.id);
+      if(!old||(v.updatedAt||0)>=(old.updatedAt||0)) map.set(v.id,v); });
+    vocabBank=[...map.values()]; saveVocabBank();
+  }
+  fileHandle=h;expanded=new Set();if(DB.tree[0])expanded.add(DB.tree[0].id);rerenderAll();renderVocab();setFileStatus(true);$("reconnectPill").style.display="none";toast("Đã kết nối lại file dữ liệu");}catch(e){toast("Không kết nối lại được");}}
 
 /* ---------- tree helpers ---------- */
 function walk(nodes,fn){nodes.forEach(n=>{fn(n);if(n.children)walk(n.children,fn);});}
@@ -778,7 +827,9 @@ function renderVocab(){const list=$("vlist");if(!cur){list.innerHTML='<div class
   const q=($("vsearch").value||"").trim().toLowerCase();let cards=cardsForPassage(cur.id);
   if(q)cards=cards.filter(c=>(c.word+" "+stripTags(c.content||"")).toLowerCase().includes(q));
   if(!cards.length){list.innerHTML='<div class="vempty">Chưa có thẻ từ.<br>Bôi đen một từ rồi bấm chuột phải → <b>🔖 Lưu thẻ</b>.</div>';return;}list.innerHTML="";
-  cards.forEach(c=>{const wordSz=c.wordFontSize||32,contentSz=c.contentFontSize||15;
+  cards.forEach(c=>{
+   try{
+    const wordSz=c.wordFontSize||32,contentSz=c.contentFontSize||15;
     const el=document.createElement("div");el.className="card";el.dataset.vid=c.id;
     const otherOccs=(c.occurrences||[]).filter(o=>o.itemId!==cur.id).filter(o=>typeof occItemExists!=="function"||occItemExists(o));
     el.innerHTML=`<div class="top"><span class="han" style="font-size:${wordSz}px;${wordStyleCSS(c)};padding:1px 6px;border-radius:5px">${esc(c.word)}</span><button class="mini" data-edit style="margin-left:auto">✏️</button><button class="mini" data-del>🗑</button></div>
@@ -796,7 +847,9 @@ function renderVocab(){const list=$("vlist");if(!cur){list.innerHTML='<div class
     el.querySelector("[data-del]").onclick=(ev)=>{ev.stopPropagation();
       if(!confirm('Xoá thẻ "'+c.word+'" khỏi KHO TỪ VỰNG CHUNG? (ảnh hưởng tất cả app, không chỉ bài này)'))return;
       vocabBank=vocabBank.filter(x=>x.id!==c.id);saveVocabBank();unwrap("vw",c.id);renderVocab();renderReader();};
-    list.appendChild(el);});
+    list.appendChild(el);
+   }catch(e){ console.warn("renderVocab: bỏ qua 1 thẻ do lỗi, các thẻ khác vẫn hiện bình thường",e,c); }
+  });
   if(DB.settings.pinyin)annotatePinyin(list);}
 function renderNotes(){const list=$("vlist");if(!cur){list.innerHTML='<div class="vempty">Mở một bài đọc.</div>';return;}
   const ns=cur.notes||[];if(!ns.length){list.innerHTML='<div class="vempty">Chưa có ghi chú.<br>Bôi đen 1 câu/đoạn → chuột phải → <b>📝 Ghi chú</b>.</div>';return;}list.innerHTML="";
@@ -912,7 +965,28 @@ function trackEd(el){if(el&&el.closest){const ed=el.closest('[contenteditable="t
 document.addEventListener("focusin",e=>trackEd(e.target));
 document.addEventListener("selectionchange",()=>{const s=window.getSelection();if(s&&s.rangeCount){const r=s.getRangeAt(0);let node=r.startContainer;node=node.nodeType===1?node:node.parentElement;const ed=node&&node.closest?node.closest('[contenteditable="true"]'):null;if(ed){activeEditable=ed;if(!s.isCollapsed)savedSel=r.cloneRange();}}});
 function focusActive(){if(activeEditable){activeEditable.focus();if(savedSel){try{const s=window.getSelection();s.removeAllRanges();s.addRange(savedSel);}catch(e){}}}}
-function applyCmd(cmd,val){if(!activeEditable){toast("Hãy bấm vào vùng cần định dạng trước");return;}focusActive();document.execCommand("styleWithCSS",false,true);document.execCommand(cmd,false,val||null);persistEditable(activeEditable);}
+function applyCmd(cmd,val){
+  // QUAN TRỌNG: mousedown trên thanh công cụ đã preventDefault() nên vùng bôi đen KHÔNG hề bị
+  // mất khi bấm nút — không cần (và không nên) gọi lại .focus() + tự khôi phục vùng chọn đã lưu,
+  // vì chính bước "khôi phục" đó mới là nguyên nhân làm sai lệch/mất vùng bôi đen thật sự đang có.
+  // Cứ tin thẳng vào vùng bôi đen HIỆN TẠI của trình duyệt, giống hệt cách phím tắt Ctrl+B hoạt động.
+  const s=window.getSelection();
+  let ed=null;
+  if(s&&s.rangeCount){
+    const node=s.getRangeAt(0).commonAncestorContainer;
+    const el=node.nodeType===1?node:node.parentElement;
+    ed=el&&el.closest?el.closest('[contenteditable="true"]'):null;
+  }
+  if(!ed) ed=activeEditable; // dự phòng: nếu vì lý do gì đó không lấy được từ selection hiện tại
+  if(!ed){toast("Hãy bấm vào vùng cần định dạng trước");return;}
+  try{
+    ed.focus({preventScroll:true});
+    document.execCommand("styleWithCSS",false,true);
+    const ok=document.execCommand(cmd,false,val||null);
+    persistEditable(ed);
+    if(!ok) toast("Trình duyệt từ chối áp dụng định dạng này — thử bôi đen lại rồi bấm lại.");
+  }catch(e){ console.warn("applyCmd lỗi",cmd,e); toast("Có lỗi khi áp dụng định dạng, thử tải lại trang (Ctrl+Shift+R)."); }
+}
 /* applyHl/applyFc cũ: xem shared-colorpop.js (dùng chung cả 4 app) */
 function applyLH(v){if(!activeEditable)return;activeEditable.style.lineHeight=v;if(activeEditable.id==="body"&&cur){cur.bodyLH=v;saveDebounced();}}
 function applySize(dir){
@@ -945,10 +1019,19 @@ $("ctxPaint").addEventListener("click",()=>{ ctx.style.display="none"; togglePai
 $("insTableBtn").addEventListener("mousedown",e=>e.preventDefault());
 $("insTableBtn").addEventListener("click",()=>{
   if(!activeEditable){ toast("Hãy bấm vào bài đọc (hoặc ô cần chèn bảng) trước."); return; }
+  // QUAN TRỌNG: chụp lại đúng vị trí con trỏ/vùng bôi đen TRƯỚC KHI mở hộp thoại hỏi số
+  // hàng/cột — vì hộp thoại prompt() là cửa sổ hệ thống, có thể làm trình duyệt xoá mất
+  // vị trí con trỏ đang có; không chụp trước thì lúc bảng thực sự được chèn có thể bị lệch
+  // chỗ hoặc trông như "không phản ứng gì" vì vị trí đã bị mất.
+  let preRange=null;
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount&&activeEditable.contains(sel.getRangeAt(0).commonAncestorContainer)) preRange=sel.getRangeAt(0).cloneRange();
   const rows=parseInt(prompt("Số hàng?","3"))||3;
   const cols=parseInt(prompt("Số cột?","3"))||3;
-  insertTableAt(activeEditable,Math.max(1,Math.min(30,rows)),Math.max(1,Math.min(15,cols)));
+  insertTableAt(activeEditable,Math.max(1,Math.min(30,rows)),Math.max(1,Math.min(15,cols)),preRange);
 });
+$("unstuckBtn").addEventListener("mousedown",e=>e.preventDefault());
+$("unstuckBtn").addEventListener("click",()=>{ unstuckUI(); toast("Đã dọn dẹp — thử thao tác lại xem đã được chưa."); });
 $("histBtn").addEventListener("click",()=>{
   if(!cur){ toast("Hãy mở 1 bài trước."); return; }
   historyPanel(cur.id, (data)=>{ Object.assign(cur,data); save(); renderReader(); renderTree(); toast("Đã khôi phục."); }, ()=>({...cur}));
@@ -1154,8 +1237,27 @@ let tdt;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("sh
 
 function rerenderAll(){setTab(DB.settings.tab||"vocab");renderTree();if(DB.sel&&findNode(DB.sel)&&findNode(DB.sel).node.type==="passage")openPassage(DB.sel);else showEmpty();}
 
+/* AN TOÀN: gỡ sạch mọi lớp "tạm thời" có thể bị kẹt lại (màn che mờ dscrim, khoá chọn chữ lúc
+   kéo giãn bảng, bảng đang mở, thanh định dạng hàng loạt, bảng màu, menu chuột phải...) khiến
+   trang không thao tác được dù nhìn không thấy gì bất thường. Gọi khi tải trang, và cũng có
+   thể tự bấm nút "🔧 Khắc phục" trên thanh công cụ bất cứ lúc nào nếu nghi ngờ bị kẹt — không
+   cần tải lại trang. */
+function unstuckUI(){
+  try{
+    document.body.classList.remove("tbl-dragging","vocab-open","paint-mode");
+    const dscrimEl=document.getElementById("dscrim"); if(dscrimEl) dscrimEl.classList.remove("show","show-right");
+    const leftD=document.getElementById("leftDrawer"); if(leftD) leftD.classList.remove("open");
+    const rightD=document.getElementById("rightDrawer"); if(rightD) rightD.classList.remove("open");
+    document.querySelectorAll(".ins-table-wrap.active").forEach(w=>w.classList.remove("active"));
+    const bulkTb=document.getElementById("bulkToolbar"); if(bulkTb) bulkTb.classList.remove("show");
+    const colorPopEl=document.getElementById("colorPop"); if(colorPopEl) colorPopEl.classList.remove("show");
+    const ctxEl=document.getElementById("ctx"); if(ctxEl) ctxEl.style.display="none";
+  }catch(e){}
+}
 /* init */
-(async function init(){if(!load()){seed();save();}normalize();vocabBank=loadVocabBank();try{if(typeof migrateVocabBg==="function")migrateVocabBg(vocabBank);}catch(e){console.warn("migrateVocabBg lỗi, bỏ qua bước gộp màu nền",e);}updateHeaderH();wireColDrag();
+(async function init(){
+  unstuckUI();
+  if(!load()){seed();save();}normalize();vocabBank=loadVocabBank();try{if(typeof migrateVocabBg==="function")migrateVocabBg(vocabBank);}catch(e){console.warn("migrateVocabBg lỗi, bỏ qua bước gộp màu nền",e);}updateHeaderH();wireColDrag();
   $("answerToggle").innerHTML=DB.settings.showAnswers?"👁 Ẩn đáp án":"🙈 Hiện đáp án";
   applyViet();
   applyScriptBtn();if(DB.settings.script==="tw")convertTextIn(document.body);
