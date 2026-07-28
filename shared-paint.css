@@ -1,0 +1,9 @@
+/* ============================================================
+   shared-paint.css
+   🖌 Ống hút định dạng (Format Painter) — dùng chung cho cả 4 app
+   ============================================================ */
+
+/* !important để chắc chắn thắng được màu mặc định riêng của từng nút ở mỗi app
+   (mỗi app có class nút gốc khác nhau: .rbtn, .tb2btn, #paintBtn, .selpop button...) */
+.paint-on{background:#2f6b5e!important;color:#fff!important;border-color:#2f6b5e!important}
+body.paint-mode [contenteditable="true"]{cursor:crosshair}

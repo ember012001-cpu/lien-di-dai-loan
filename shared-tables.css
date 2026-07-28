@@ -1,0 +1,52 @@
+/* ============================================================
+   shared-tables.css
+   Bảng biểu chèn vào bài — dùng chung cho reader.html và tinh-nghe.html
+   (▦ Bảng, kéo giãn cột/hàng, chọn cả cột/hàng để định dạng hàng loạt,
+    tự nâng cấp bảng dán từ Excel/Word)
+
+   LƯU Ý KHI SỬA: file này được cả 2 app dùng chung — sửa ở đây là sửa cho
+   cả 2 app cùng lúc. Không sửa trực tiếp CSS bảng biểu bên trong file HTML
+   của từng app nữa (đã gỡ ra hết rồi).
+   ============================================================ */
+
+.ins-table-wrap{margin:12px 0;position:relative}
+.ins-table-toolbar{display:none;gap:4px;margin-bottom:5px;flex-wrap:wrap;background:#f4f2e9;border:1px solid #e4dfd2;
+  border-radius:8px;padding:5px 6px;
+  position:sticky;top:var(--tbl-toolbar-top,8px);z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.ins-table-wrap.active .ins-table-toolbar{display:flex}
+.ins-table-toolbar button{font-size:11.5px;padding:3px 9px;border:1px solid #d8d2c2;background:#fff;border-radius:6px;
+  cursor:pointer;color:#2a2722}
+.ins-table-toolbar button:hover{background:#e5f0ec;border-color:#2f6b5e}
+.ins-table-toolbar button.danger{color:#c0392b;border-color:#e0b4ac}
+.ins-table-toolbar button.danger:hover{background:#fbe9e6}
+.ins-table-toolbar-sep{width:1px;align-self:stretch;background:#d8d2c2;margin:2px 2px}
+.ins-table{border-collapse:collapse;width:100%;table-layout:fixed}
+.ins-table td,.ins-table th{border:1px solid #cfc9b8;padding:7px 9px;vertical-align:top;position:relative;min-width:36px;
+  word-break:break-word}
+.ins-table td:focus,.ins-table th:focus{outline:2px solid #2f6b5e;outline-offset:-2px}
+.ins-table .col-resize{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:5;
+  user-select:none;-webkit-user-select:none}
+.ins-table .row-resize{position:absolute;left:0;right:8px;bottom:-3px;height:6px;cursor:row-resize;z-index:4;
+  user-select:none;-webkit-user-select:none}
+.ins-table .col-resize:hover,.ins-table .row-resize:hover{background:rgba(47,107,94,.25)}
+.col-pick,.row-pick{position:absolute;background:#e8e3d5;border:1px solid #cfc9b8;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b655b;z-index:3;
+  user-select:none;-webkit-user-select:none}
+.col-pick{border-radius:4px 4px 0 0}
+.col-pick:hover{background:#d8e9e0;color:#2f6b5e}
+.row-pick{border-radius:4px 0 0 4px}
+.row-pick:hover{background:#d8e9e0;color:#2f6b5e}
+/* trong lúc đang kéo giãn cột/hàng: khoá chọn chữ toàn trang, tránh trình duyệt tự bôi đen lung tung */
+body.tbl-dragging,body.tbl-dragging *{user-select:none!important;-webkit-user-select:none!important}
+.ins-table td.tbl-cell-selected,.ins-table th.tbl-cell-selected{background:rgba(47,107,94,.18)!important;
+  outline:2px solid #2f6b5e;outline-offset:-2px}
+.bulk-toolbar{position:fixed;z-index:500;display:none;gap:6px;align-items:center;background:#1e2d21;color:#fff;
+  border-radius:10px;padding:6px 8px;box-shadow:0 6px 20px rgba(0,0,0,.25);font-size:12px}
+.bulk-toolbar.show{display:flex}
+.bulk-toolbar button{border:none;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:12px;
+  padding:5px 9px;border-radius:6px}
+.bulk-toolbar button:hover{background:rgba(255,255,255,.25)}
+.bulk-toolbar input[type=color]{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;background:none;padding:0}
+.bulk-toolbar select{font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.3);
+  background:#2a3b30;color:#fff;cursor:pointer}
+.bulk-toolbar .bt-sep{width:1px;align-self:stretch;background:rgba(255,255,255,.2)}
