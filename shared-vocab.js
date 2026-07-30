@@ -261,4 +261,67 @@ window.migrateVocabBg=function(bank){
   return changed;
 };
 
+// ============================================================
+// SỬA TẬN GỐC lỗi "kho từ vựng lưu thiếu do bộ nhớ trình duyệt đầy":
+// bộ nhớ trình duyệt thường dùng (localStorage) chỉ có khoảng 5-10MB dùng CHUNG cho mọi thứ
+// (bài đọc, transcript, kho từ...) — kho từ vựng càng lớn càng dễ đụng giới hạn này, và khi
+// đụng giới hạn, việc lưu THẤT BẠI (có thể không hiện lỗi rõ ràng ở một số bước), khiến thẻ từ
+// mới thêm KHÔNG được lưu vào kho chung dù mọi thứ trông vẫn bình thường trên màn hình.
+//
+// Cách sửa: mỗi lần lưu kho từ vựng, NGOÀI việc lưu vào localStorage như cũ, còn tự động lưu
+// thêm 1 BẢN SAO DỰ PHÒNG vào IndexedDB — đây là kho lưu trữ RIÊNG BIỆT, KHÔNG dùng chung dung
+// lượng với localStorage, sức chứa lớn hơn RẤT NHIỀU (thường không giới hạn thực tế cho dữ liệu
+// dạng này) — nên gần như không bao giờ bị đầy.
+//
+// Mỗi lần app khởi động, tự so sánh bản dự phòng này với bản đang có trong localStorage — nếu
+// bản dự phòng có NHIỀU THẺ TỪ HƠN (dấu hiệu localStorage từng lưu thiếu), TỰ ĐỘNG gộp bổ sung
+// phần thiếu (không xoá gì cả) và báo cho người dùng biết — không cần chờ phát hiện thủ công
+// hay dùng công cụ khôi phục riêng như trước nữa.
+// ============================================================
+const VOCAB_IDB_NAME="han_vocab_idb", VOCAB_IDB_STORE="bank";
+function openVocabIDB(){
+  return new Promise((resolve,reject)=>{
+    try{
+      const req=indexedDB.open(VOCAB_IDB_NAME,1);
+      req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(VOCAB_IDB_STORE)) req.result.createObjectStore(VOCAB_IDB_STORE); };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    }catch(e){ reject(e); }
+  });
+}
+// Gọi hàm này MỖI LẦN sau khi lưu kho từ vựng (localStorage) — ghi thêm 1 bản dự phòng vào
+// IndexedDB. Chạy ngầm (không cần đợi/await), không ảnh hưởng gì tới luồng lưu chính đang có.
+window.vocabBankMirrorToIDB=function(bank){
+  try{
+    openVocabIDB().then(db=>{
+      const tx=db.transaction(VOCAB_IDB_STORE,"readwrite");
+      tx.objectStore(VOCAB_IDB_STORE).put(bank,"bank");
+    }).catch(e=>console.warn("Không ghi được bản dự phòng IndexedDB (không ảnh hưởng gì tới việc lưu chính)",e));
+  }catch(e){}
+};
+// Gọi hàm này LÚC APP VỪA KHỞI ĐỘNG (sau khi đã nạp kho từ vựng từ localStorage như bình
+// thường) — so sánh với bản dự phòng, nếu phát hiện thiếu thẻ từ thì tự gộp bổ sung (an toàn,
+// không xoá gì) và gọi lại onHealed(bankMoiDaGop, soThẻĐãThêm) để app tự lưu + render lại.
+window.vocabBankAutoHeal=function(currentBank,onHealed){
+  try{
+    openVocabIDB().then(db=>{
+      const tx=db.transaction(VOCAB_IDB_STORE,"readonly");
+      const req=tx.objectStore(VOCAB_IDB_STORE).get("bank");
+      req.onsuccess=()=>{
+        const idbBank=req.result;
+        if(!Array.isArray(idbBank)||!idbBank.length) return;
+        const map=new Map(); (currentBank||[]).forEach(v=>{ if(v&&v.id) map.set(v.id,v); });
+        let added=0;
+        idbBank.forEach(v=>{
+          if(!v||!v.id) return;
+          const old=map.get(v.id);
+          if(!old){ map.set(v.id,v); added++; }
+          else if((v.updatedAt||0)>(old.updatedAt||0)){ map.set(v.id,v); }
+        });
+        if(added>0 && typeof onHealed==="function") onHealed([...map.values()],added);
+      };
+    }).catch(e=>{});
+  }catch(e){}
+};
+
 })();
