@@ -384,7 +384,25 @@ const VOCAB_BANK_KEY="han_vocab_bank";
 const APP_LABEL="📝 Viết luận HSK";
 let vocabBank=[];
 function loadVocabBank(){ try{ const s=localStorage.getItem(VOCAB_BANK_KEY); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){} return []; }
-function saveVocabBank(){ try{ localStorage.setItem(VOCAB_BANK_KEY, JSON.stringify(vocabBank)); }catch(e){ console.warn("saveVocabBank lỗi",e); if(e&&/quota/i.test(e.name||""))alert("⚠️ Bộ nhớ trình duyệt đầy — thẻ từ vừa sửa có thể chưa được lưu!"); } if(typeof vocabBankMirrorToIDB==="function") vocabBankMirrorToIDB(vocabBank); }
+// Thông báo nhỏ không chặn màn hình (khác alert() — không cần bấm OK mới gõ tiếp được).
+// Có giới hạn tần suất: cùng 1 nội dung chỉ hiện lại sau ít nhất 60 giây, tránh làm phiền
+// liên tục nếu lỗi cứ lặp lại mỗi lần gõ chữ.
+let _lastToastMsg="", _lastToastTime=0;
+function toast(msg){
+  const now=Date.now();
+  if(msg===_lastToastMsg && now-_lastToastTime<60000) return;
+  _lastToastMsg=msg; _lastToastTime=now;
+  let el=document.getElementById("_toastEl");
+  if(!el){
+    el=document.createElement("div"); el.id="_toastEl";
+    el.style.cssText="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e2d21;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)";
+    document.body.appendChild(el);
+  }
+  el.textContent=msg; el.style.display="block";
+  clearTimeout(el._hideTimer);
+  el._hideTimer=setTimeout(()=>{ el.style.display="none"; },4000);
+}
+function saveVocabBank(){ try{ localStorage.setItem(VOCAB_BANK_KEY, JSON.stringify(vocabBank)); }catch(e){ console.warn("saveVocabBank lỗi",e); if(e&&/quota/i.test(e.name||""))toast("⚠️ Bộ nhớ trình duyệt đầy — thẻ từ vừa sửa có thể chưa được lưu!"); } if(typeof vocabBankMirrorToIDB==="function") vocabBankMirrorToIDB(vocabBank); }
 function cardsForEntry(eid){ return vocabBank.filter(v=>(v.occurrences||[]).some(o=>o.itemId===eid)); }
 function resolveVocabId(vid){ const rec=vocabBank.find(v=>v.id===vid) || vocabBank.find(v=>(v.sourceIds||[]).includes(vid)); return rec?rec.id:vid; }
 function ensureOccurrence(rec,eid){
@@ -480,7 +498,7 @@ function updateBanner(){
 }
 function persist(){
   try{ localStorage.setItem(KEY, JSON.stringify(state.entries)); }
-  catch(e){ alert("Không lưu được vào trình duyệt. Hãy bấm Xuất để sao lưu dữ liệu ngay."); }
+  catch(e){ toast("⚠️ Bộ nhớ trình duyệt đầy — bài viết vừa sửa có thể chưa được lưu. Hãy bấm ⬇ Xuất để sao lưu ngay."); }
   meta.dirty=true; saveMeta(); updateBanner();
 }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);

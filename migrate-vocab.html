@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sao lưu kho từ vựng chung · 汉学</title>
+<style>
+:root{
+  --bg:#e8f3ef;--card:#ffffff;--ink:#2a302c;--muted:#728178;
+  --jade:#5d9150;--jade-soft:#e3f0dd;--line:#dde9e1;
+  --red:#c0392b;--blue:#2c6fad;--purple:#6b4fad;--orange:#c0602b;
+  --ui:'Quicksand',system-ui,sans-serif;--kai:'KaiTi','楷体',serif;
+  --radius:16px;--shadow:0 4px 24px rgba(44,80,44,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--bg);color:var(--ink);min-height:100vh;padding:24px 16px 60px}
+.wrap{max-width:860px;margin:0 auto}
+header{background:#1e2d21;padding:28px 28px 22px;border-radius:var(--radius);text-align:center;margin-bottom:20px}
+.h-han{font-family:var(--kai);font-size:34px;color:#fff;letter-spacing:4px;margin-bottom:6px}
+.h-title{color:rgba(255,255,255,.75);font-size:13px;letter-spacing:1px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+.card h2{font-size:15px;margin-bottom:10px;color:var(--jade)}
+.warn{background:#fff7e0;border:1px solid #f0d98c;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;margin-bottom:18px}
+.warn b{color:var(--orange)}
+.btn{background:var(--jade);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ui)}
+.btn:hover{filter:brightness(1.05)}
+.btn.secondary{background:#fff;color:var(--jade);border:1.5px solid var(--jade)}
+.btn.danger{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tag{display:inline-block;background:var(--jade-soft);color:var(--jade);border-radius:20px;padding:2px 9px;font-size:11.5px;margin:2px 3px 2px 0}
+.muted{color:var(--muted)}
+.vlist{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px;margin-top:10px}
+.vitem{border-bottom:1px dashed var(--line);padding:10px 8px}
+.vitem:last-child{border-bottom:none}
+.vword{font-family:var(--kai);font-size:20px;font-weight:700}
+.vsrc{font-size:11.5px;color:var(--muted);margin-top:3px}
+.status{font-size:13.5px;margin-top:10px;padding:10px 12px;border-radius:10px}
+.status.ok{background:#e3f0dd;color:#3e6b32}
+.status.err{background:#fde3e0;color:#a13b2f}
+.actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.big-num{font-size:32px;font-weight:700;color:var(--jade)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="h-han">汉学 · 词库</div>
+    <div class="h-title">SAO LƯU · KHÔI PHỤC KHO TỪ VỰNG CHUNG</div>
+  </header>
+
+  <div class="warn">
+    ⚠️ File này phải mở ở <b>đúng cùng vị trí/địa chỉ (cùng domain hoặc cùng thư mục file://)</b> với 4 app kia — vì trình duyệt chỉ đọc được localStorage của cùng một nguồn gốc (origin).<br><br>
+    ℹ️ Kho từ vựng chung (<code>han_vocab_bank</code>) là <b>một kho duy nhất</b>, dùng chung cho cả 4 app Đọc/Nói/Nghe/Viết. Bình thường bạn <b>không cần dùng trang này</b> — cứ bấm "⬇ Xuất" ở bất kỳ app nào cũng đã tự kèm theo bản sao kho chung rồi. Trang này chỉ dành cho lúc bạn muốn xuất/khôi phục <b>riêng phần từ vựng</b>, tách biệt khỏi dữ liệu bài học.
+  </div>
+
+  <div class="card">
+    <h2>📊 Hiện trạng kho chung trên trình duyệt này</h2>
+    <div class="big-num" id="curCount">–</div>
+    <div class="muted" id="curNote" style="font-size:13px;margin-top:4px"></div>
+  </div>
+
+  <div class="card">
+    <h2>⬇ Xuất kho từ vựng chung</h2>
+    <p class="muted" style="font-size:13px">Tải toàn bộ thẻ từ trong kho chung ra 1 file JSON để sao lưu.</p>
+    <div class="actions"><button class="btn" id="btnExport">⬇ Tải file backup</button></div>
+  </div>
+
+  <div class="card">
+    <h2>⬆ Khôi phục kho từ vựng chung</h2>
+    <p class="muted" style="font-size:13px">Chọn file JSON đã xuất trước đây (từ trang này, hoặc kèm trong file backup xuất ra từ 1 trong 4 app).</p>
+    <div class="actions">
+      <button class="btn secondary" id="btnPick">📂 Chọn file…</button>
+      <input type="file" id="impFile" accept="application/json" style="display:none">
+    </div>
+    <div id="preview"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const KEY='han_vocab_bank';
+
+function loadBank(){ try{ const s=localStorage.getItem(KEY); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){} return []; }
+const VOCAB_IDB_NAME="han_vocab_idb", VOCAB_IDB_STORE="bank";
+function openVocabIDB(){
+  return new Promise((resolve,reject)=>{
+    try{
+      const req=indexedDB.open(VOCAB_IDB_NAME,1);
+      req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(VOCAB_IDB_STORE)) req.result.createObjectStore(VOCAB_IDB_STORE); };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    }catch(e){ reject(e); }
+  });
+}
+function writeToIDB(bank){
+  return openVocabIDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(VOCAB_IDB_STORE,"readwrite");
+    tx.objectStore(VOCAB_IDB_STORE).put(bank,"bank");
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  }));
+}
+// AN TOÀN: ghi vào "kho lớn" (IndexedDB, hầu như không giới hạn) TRƯỚC, sau đó mới thử ghi
+// localStorage như cũ — dù localStorage có đầy/lỗi, dữ liệu vẫn được lưu an toàn ở kho lớn,
+// và các app (bản mới) sẽ tự động lấy đủ dữ liệu từ đó khi mở lên.
+async function saveBank(arr){
+  let idbOk=false, lsOk=false;
+  try{ await writeToIDB(arr); idbOk=true; }catch(e){ console.warn("Ghi IndexedDB lỗi",e); }
+  try{ localStorage.setItem(KEY, JSON.stringify(arr)); lsOk=true; }catch(e){ console.warn("Ghi localStorage lỗi",e); }
+  return {idbOk,lsOk};
+}
+
+function refreshStatus(){
+  const bank=loadBank();
+  $('curCount').textContent=bank.length+' thẻ từ';
+  $('curNote').textContent=bank.length ? 'Đang lưu trên trình duyệt này (origin hiện tại).' : 'Chưa có thẻ từ nào, hoặc bạn đang mở file này ở sai địa chỉ so với 4 app kia.';
+}
+refreshStatus();
+
+$('btnExport').onclick=()=>{
+  const bank=loadBank();
+  const payload={__hanBackup:true, kind:'vocabBankOnly', vocabBank:bank, exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='han-vocab-bank-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+};
+
+let pendingBank=null;
+$('btnPick').onclick=()=>$('impFile').click();
+$('impFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const raw=JSON.parse(r.result);
+      let incoming=null;
+      if(raw && raw.__hanBackup && Array.isArray(raw.vocabBank)) incoming=raw.vocabBank; // file kèm theo từ 1 trong 4 app, hoặc xuất từ chính trang này
+      else if(Array.isArray(raw)) incoming=raw; // file JSON là mảng thẻ từ trần
+      if(!incoming){ $('preview').innerHTML='<div class="status err">❌ File này không chứa kho từ vựng chung hợp lệ.</div>'; return; }
+      pendingBank=incoming;
+      const cur=loadBank();
+      $('preview').innerHTML=`
+        <div class="status ok">File có <b>${incoming.length}</b> thẻ từ. Kho hiện tại đang có <b>${cur.length}</b> thẻ.</div>
+        <div class="vlist">${incoming.slice(0,50).map(v=>`<div class="vitem"><div class="vword">${esc(v.word||'')}</div>
+          <div class="vsrc">${(v.occurrences||[]).map(o=>`<span class="tag">${esc((o.app||'')+' · '+(o.itemTitle||''))}</span>`).join('')}</div></div>`).join('')}
+          ${incoming.length>50?`<div class="muted" style="padding:8px">… và ${incoming.length-50} thẻ khác</div>`:''}</div>
+        <div class="actions">
+          <button class="btn" id="btnMerge">🔀 Gộp vào kho hiện tại (giữ cả 2, ưu tiên bản mới hơn nếu trùng ID)</button>
+          <button class="btn danger" id="btnReplace">⚠️ Thay thế toàn bộ kho hiện tại</button>
+        </div>`;
+      $('btnMerge').onclick=()=>doImport('merge');
+      $('btnReplace').onclick=()=>doImport('replace');
+    }catch(err){ $('preview').innerHTML='<div class="status err">❌ File JSON không hợp lệ.</div>'; }
+  };
+  r.readAsText(f);
+  e.target.value='';
+};
+
+function unionOccurrences(a,b){
+  const list=Array.isArray(a)?[...a]:[];
+  const keySet=new Set(list.map(o=>(o&&o.app)+"|"+(o&&o.itemId)));
+  (Array.isArray(b)?b:[]).forEach(o=>{
+    if(!o) return;
+    const k=(o.app)+"|"+(o.itemId);
+    if(!keySet.has(k)){ list.push(o); keySet.add(k); }
+  });
+  return list;
+}
+function mergeVocabRecord(a,b){
+  if(!a) return b; if(!b) return a;
+  const newer=(b.updatedAt||0)>=(a.updatedAt||0)?b:a;
+  const older=newer===b?a:b;
+  const merged=Object.assign({},newer);
+  merged.occurrences=unionOccurrences(newer.occurrences,older.occurrences);
+  return merged;
+}
+async function doImport(mode){
+  if(!pendingBank) return;
+  if(mode==='replace' && !confirm('Chắc chắn THAY THẾ toàn bộ kho từ vựng hiện tại? Không thể hoàn tác.')) return;
+  let result;
+  if(mode==='replace'){ result=pendingBank; }
+  else{
+    const cur=loadBank();
+    const map=new Map(); cur.forEach(v=>{ if(v&&v.id) map.set(v.id,v); });
+    pendingBank.forEach(v=>{
+      if(!v||!v.id) return;
+      const existing=map.get(v.id);
+      // GỘP occurrences của cả 2 bản, không chỉ chọn nguyên 1 bản mới hơn — tránh làm mất
+      // thông tin "từ này CŨNG xuất hiện ở bài X" nếu bản trong máy chưa có occurrence đó.
+      map.set(v.id, existing?mergeVocabRecord(existing,v):v);
+    });
+    result=Array.from(map.values());
+  }
+  $('preview').innerHTML+=`<div class="status ok" id="savingMsg">⏳ Đang lưu...</div>`;
+  const {idbOk,lsOk}=await saveBank(result);
+  let msg;
+  if(idbOk){
+    msg=`✅ Đã lưu vào "kho lớn" thành công. Kho từ vựng chung hiện có ${result.length} thẻ.`;
+    if(!lsOk) msg+=` (Bộ nhớ trình duyệt thường vẫn đầy, nhưng KHÔNG SAO — mở app Đọc/Nghe bất kỳ (bản mới), app sẽ tự động lấy đủ dữ liệu từ "kho lớn" trong vài giây.)`;
+  }else if(lsOk){
+    msg=`✅ Đã lưu (chỉ vào bộ nhớ trình duyệt thường, "kho lớn" gặp lỗi). Kho từ vựng chung hiện có ${result.length} thẻ.`;
+  }else{
+    msg=`❌ Không lưu được vào cả 2 nơi. Thử tải lại trang và làm lại, hoặc báo lỗi này lại.`;
+  }
+  $('preview').innerHTML=`<div class="status ${idbOk||lsOk?'ok':'err'}">${msg}</div>`;
+  pendingBank=null;
+  refreshStatus();
+}
+</script>
+</body>
+</html>
