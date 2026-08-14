@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>汉学 · Liên Học Tiếng Trung</title>
+<style>
+:root{
+  --bg:#e8f3ef;--card:#ffffff;--ink:#2a302c;--muted:#728178;
+  --jade:#5d9150;--jade-soft:#e3f0dd;--line:#dde9e1;
+  --red:#c0392b;--blue:#2c6fad;--purple:#6b4fad;--orange:#c0602b;
+  --ui:'Quicksand',system-ui,sans-serif;--kai:'KaiTi','楷体',serif;
+  --radius:16px;--shadow:0 4px 24px rgba(44,80,44,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--bg);color:var(--ink);min-height:100vh;padding:0 0 60px}
+
+/* HEADER */
+header{background:#1e2d21;padding:32px 32px 26px;text-align:center;position:relative;overflow:hidden}
+header::before{content:'学';position:absolute;font-family:var(--kai);font-size:280px;
+  color:rgba(255,255,255,.03);top:-40px;right:-10px;line-height:1;pointer-events:none}
+.h-han{font-family:var(--kai);font-size:48px;color:#fff;letter-spacing:6px;line-height:1;margin-bottom:8px}
+.h-title{color:rgba(255,255,255,.7);font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));
+  gap:16px;max-width:1000px;margin:32px auto 0;padding:0 24px}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  border:1.5px solid var(--line);overflow:hidden;text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s,border-color .15s}
+.card:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(44,80,44,.15)}
+.card-top{padding:22px 22px 14px;display:flex;align-items:flex-start;gap:14px}
+.icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;
+  justify-content:center;font-size:26px;flex:0 0 auto}
+.han{font-family:var(--kai);font-size:23px;font-weight:700;letter-spacing:1px;line-height:1.1;margin-bottom:3px}
+.viet{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;opacity:.55}
+.desc{padding:0 22px 16px;font-size:13px;color:var(--muted);line-height:1.65;flex:1}
+.footer{padding:9px 22px 13px;border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between}
+.tag{border-radius:20px;padding:2px 9px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+.arrow{font-size:17px;opacity:.4;transition:opacity .15s,transform .15s}
+.card:hover .arrow{opacity:.9;transform:translateX(4px)}
+
+/* themes */
+.j .icon{background:#e3f0dd;color:var(--jade)}.j .han{color:var(--jade)}.j:hover{border-color:var(--jade)}.j .tag{background:#e3f0dd;color:var(--jade)}.j .arrow{color:var(--jade)}
+.r .icon{background:#fde8e8;color:var(--red)}.r .han{color:var(--red)}.r:hover{border-color:var(--red)}.r .tag{background:#fde8e8;color:var(--red)}.r .arrow{color:var(--red)}
+.b .icon{background:#e3eef8;color:var(--blue)}.b .han{color:var(--blue)}.b:hover{border-color:var(--blue)}.b .tag{background:#e3eef8;color:var(--blue)}.b .arrow{color:var(--blue)}
+.o .icon{background:#faeee3;color:var(--orange)}.o .han{color:var(--orange)}.o:hover{border-color:var(--orange)}.o .tag{background:#faeee3;color:var(--orange)}.o .arrow{color:var(--orange)}
+.p .icon{background:#ede8f8;color:var(--purple)}.p .han{color:var(--purple)}.p:hover{border-color:var(--purple)}.p .tag{background:#ede8f8;color:var(--purple)}.p .arrow{color:var(--purple)}
+
+@media(max-width:600px){
+  header{padding:22px 16px}
+  .h-han{font-size:38px}
+  .grid{grid-template-columns:1fr;padding:0 14px;gap:12px;margin-top:22px}
+}
+
+/* ============================================================
+   📅 KHUNG NHẮC ÔN TỔNG HỢP (từ tất cả app) — hiện ngay trên trang chủ
+   ============================================================ */
+.weekly-wrap{max-width:1000px;margin:26px auto 0;padding:0 24px}
+.weekly-banner{background:#fff9e8;border:1.5px solid #e8c96b;border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:18px 22px}
+.weekly-banner h2{font-size:16px;margin-bottom:4px;display:flex;align-items:center;gap:8px;color:var(--ink)}
+.weekly-banner .wk-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.weekly-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:10px 14px;margin-bottom:8px;text-decoration:none;color:inherit;transition:.15s}
+.weekly-row:last-child{margin-bottom:0}
+.weekly-row:hover{border-color:#e8c96b;box-shadow:0 4px 14px rgba(180,140,40,.12)}
+.weekly-row .wr-app{flex:0 0 auto;font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+  border-radius:20px;padding:3px 9px}
+.weekly-row .wr-info{flex:1;min-width:0}
+.weekly-row .wr-title{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.weekly-row .wr-path{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.weekly-row .wr-reason{font-size:10.5px;color:#c0392b;margin-top:1px}
+.weekly-row .wr-count{flex:0 0 auto;font-size:11px;color:var(--jade);font-weight:700;white-space:nowrap}
+.weekly-row .wr-arrow{flex:0 0 auto;opacity:.4}
+.weekly-row.wr-done{border-color:var(--jade);background:var(--jade-soft)}
+.weekly-row .wr-check{flex:0 0 auto;font-size:15px}
+@media(max-width:600px){ .weekly-wrap{padding:0 14px;margin-top:16px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-han">汉学</div>
+  <div class="h-title">Liên học tiếng Trung</div>
+</header>
+
+<div class="weekly-wrap" id="weeklyWrap"></div>
+
+<div class="grid">
+
+  <a class="card j" href="reader.html">
+    <div class="card-top">
+      <div class="icon">📖</div>
+      <div>
+        <div class="han">汉读</div>
+        <div class="viet">Luyện đọc hiểu</div>
+      </div>
+    </div>
+    <div class="desc">Đọc bài · câu hỏi trắc nghiệm · thẻ từ vựng · ghi chú. Có pinyin, chuyển Giản ↔ Phồn thể, kết nối file.</div>
+    <div class="footer">
+      <span class="tag">Đọc hiểu · HSK 5–6</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card b" href="noi.html">
+    <div class="card-top">
+      <div class="icon">🎤</div>
+      <div>
+        <div class="han">汉说</div>
+        <div class="viet">Luyện nói</div>
+      </div>
+    </div>
+    <div class="desc">Luyện nói theo ngữ cảnh: phỏng vấn, hội thoại XNK. Ghi chú, thẻ từ vựng, mốc ôn tập.</div>
+    <div class="footer">
+      <span class="tag">Giao tiếp · XNK</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card o" href="tinh-nghe.html">
+    <div class="card-top">
+      <div class="icon">🎧</div>
+      <div>
+        <div class="han">静听</div>
+        <div class="viet">Luyện nghe</div>
+      </div>
+    </div>
+    <div class="desc">Nghe YouTube / file audio, A-B loop, transcript song ngữ, câu hỏi trắc nghiệm, chép chính tả.</div>
+    <div class="footer">
+      <span class="tag">Nghe hiểu · HSKK</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card p" href="SoLuyenViet_HSK.html">
+    <div class="card-top">
+      <div class="icon">📝</div>
+      <div>
+        <div class="han">汉写</div>
+        <div class="viet">Luyện viết HSK</div>
+      </div>
+    </div>
+    <div class="desc">Sổ luyện viết bài luận HSK 5–6: soạn thảo, sửa lỗi, lưu bản nháp, định dạng văn bản.</div>
+    <div class="footer">
+      <span class="tag">Viết luận · HSK 6</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card j" href="on-tap.html">
+    <div class="card-top">
+      <div class="icon">🔁</div>
+      <div>
+        <div class="han">复习</div>
+        <div class="viet">Ôn tập từ vựng</div>
+      </div>
+    </div>
+    <div class="desc">Ôn lại từ vựng theo lịch lặp lại ngắt quãng (1-3-7-14... ngày), lọc theo từng bài, nhiều dạng bài tập tự chấm điểm.</div>
+    <div class="footer">
+      <span class="tag">Ôn tập · trắc nghiệm</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card r" href="migrate-vocab.html">
+    <div class="card-top">
+      <div class="icon">🗄</div>
+      <div>
+        <div class="han">词库</div>
+        <div class="viet">Kho từ vựng chung</div>
+      </div>
+    </div>
+    <div class="desc">Xem, sao lưu, khôi phục riêng kho từ vựng dùng chung cho cả 4 app. Ít khi cần dùng — bấm ⬇ Xuất ở app nào cũng đã tự kèm kho này rồi.</div>
+    <div class="footer">
+      <span class="tag">Công cụ · sao lưu</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+</div>
+
+<script>
+/* ============================================================
+   📅 NHẮC ÔN THEO THỨ TRONG TUẦN — tổng hợp từ tất cả app
+   Mỗi app (Nghe/Đọc/Nói/Viết) khi mở/lưu bài đều tự ghi danh sách bài + thứ cố định của
+   nó vào 1 khoá localStorage riêng (han_weekly_index_<app>). Trang chủ này chỉ ĐỌC lại các
+   khoá đó (cùng gốc/domain nên đọc được), gộp chung, lọc ra bài nào "thuộc về" đúng thứ hôm
+   nay và CHƯA được đánh dấu "đã thuộc", rồi hiện thành 1 khung nhắc ở đây. Việc "Đã thuộc"
+   vẫn phải bấm TRONG từng app (mở bài ra, xem khung Ôn tập) — trang chủ chỉ đọc, không sửa
+   dữ liệu gốc của app nào, tránh xung đột/mất đồng bộ.
+   ============================================================ */
+const WEEKDAY_VN=['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function localDow(dateStr){
+  const parts=(dateStr||'').split('-').map(Number);
+  if(parts.length!==3||parts.some(isNaN)) return null;
+  return new Date(parts[0],parts[1]-1,parts[2]).getDay();
+}
+function itemDowFromMarks(marks){
+  if(!marks) return null;
+  const dates=Object.values(marks).filter(Boolean).sort();
+  if(!dates.length) return null;
+  return localDow(dates[0]);
+}
+function marksCount(marks,customDone){
+  let n=marks?Object.values(marks).filter(Boolean).length:0;
+  if(customDone) n+=1;
+  return n;
+}
+function reviewedTodayCheck(marks,customDone){
+  const t=new Date();
+  const todayStr=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  if(marks && Object.values(marks).some(d=>d===todayStr)) return true;
+  if(customDone===todayStr) return true;
+  return false;
+}
+function walkWithPath(nodes,path,cb){
+  (nodes||[]).forEach(n=>{
+    cb(n,path);
+    if(n.children) walkWithPath(n.children,path.concat(n.name||''),cb);
+  });
+}
+function dateStrAddDays(dateStr,n){
+  const parts=(dateStr||'').split('-').map(Number);
+  if(parts.length!==3||parts.some(isNaN)) return null;
+  const d=new Date(parts[0],parts[1]-1,parts[2]); d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function todayLocalStr(){
+  const t=new Date();
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
+/* ============================================================
+   🆕 HỆ MỐC MỚI (15 mốc: 3 ngày liên tiếp → 7 mốc theo tuần → 5 mốc tự do) — xem giải thích
+   đầy đủ trong tinh-nghe.html. Trang chủ cần hiểu hệ này để tính đúng "hôm nay có bài nào đến
+   hạn" mà KHÔNG cần mở app đó trước — vì đây là hệ THEO NGÀY CỤ THỂ, không phải theo thứ lặp
+   vô hạn như hệ cũ.
+   ============================================================ */
+function v2ExpectedDate(marks,markIndex){
+  const d1=marks&&marks['1']; if(!d1) return null;
+  if(markIndex<=3) return dateStrAddDays(d1,markIndex-1);
+  if(markIndex<=10){ const d3=dateStrAddDays(d1,2); return dateStrAddDays(d3,7*(markIndex-3)); }
+  return null;
+}
+function v2NextDue(marks){
+  for(let m=1;m<=10;m++){
+    if(!marks || !marks[String(m)]){
+      const exp=v2ExpectedDate(marks,m);
+      if(exp===null) return null;
+      return {markIndex:m, expectedDate:exp};
+    }
+  }
+  return null;
+}
+// Trả về {due:boolean, dowForLabel, reasonHtml} — dùng chung cho mọi app (tree hoặc mảng phẳng)
+function computeDueInfo(scheme,marks,mastered){
+  if(mastered) return {due:false};
+  if(scheme==='v2'){
+    const nd=v2NextDue(marks);
+    if(!nd) return {due:false};
+    const due=todayLocalStr()>=nd.expectedDate;
+    const overdue=todayLocalStr()>nd.expectedDate;
+    return {due, reason:due?(`Mốc ${nd.markIndex}${overdue?' — quá hạn':' — đến hạn hôm nay'}`):null};
+  }
+  const dow=itemDowFromMarks(marks);
+  if(dow===null) return {due:false};
+  const todayDow=new Date().getDay();
+  if(todayDow===0) return {due:false}; // hệ cũ: Chủ nhật nghỉ
+  return {due:dow===todayDow, reason:null};
+}
+/* ============================================================
+   📡 ĐỌC THẲNG TỪ IndexedDB CỦA TỪNG APP — không cần bạn phải mở app đó trước! Vì cả 5 app
+   đều cùng gốc/domain, trang chủ có thể mở trực tiếp kho IndexedDB của mỗi app để lấy dữ liệu
+   MỚI NHẤT ngay lúc bạn mở trang chủ. Đọc kiểu "chỉ đọc" (read-only) an toàn tuyệt đối — không
+   đụng/sửa gì tới dữ liệu gốc, và nếu app nào CHƯA TỪNG được mở trên máy này (chưa có kho),
+   tự động bỏ qua, không tạo ra kho rỗng gây rối cho app đó về sau.
+   ============================================================ */
+function idbOpenReadOnly(dbName){
+  return new Promise(resolve=>{
+    let neverExisted=false;
+    try{
+      const req=indexedDB.open(dbName);
+      req.onupgradeneeded=()=>{ neverExisted=true; }; // kho chưa từng tồn tại — đừng tạo gì cả
+      req.onsuccess=()=>{
+        const db=req.result;
+        if(neverExisted){
+          db.close();
+          try{ indexedDB.deleteDatabase(dbName); }catch(e){} // dọn lại kho rỗng vừa lỡ tạo ra
+          resolve(null); return;
+        }
+        resolve(db);
+      };
+      req.onerror=()=>resolve(null);
+      req.onblocked=()=>resolve(null);
+    }catch(e){ resolve(null); }
+  });
+}
+async function idbGetReadOnly(dbName,storeName,key){
+  try{
+    const db=await idbOpenReadOnly(dbName);
+    if(!db) return null;
+    if(!db.objectStoreNames.contains(storeName)){ db.close(); return null; }
+    return await new Promise(resolve=>{
+      const tx=db.transaction(storeName,'readonly');
+      const rq=tx.objectStore(storeName).get(key);
+      rq.onsuccess=()=>{ resolve(rq.result||null); db.close(); };
+      rq.onerror=()=>{ resolve(null); db.close(); };
+    });
+  }catch(e){ return null; }
+}
+
+async function collectTinhNghe(){
+  const rows=[];
+  try{
+    const state=await idbGetReadOnly('tinh_nghe_db','meta','state');
+    if(state&&Array.isArray(state.roots)){
+      walkWithPath(state.roots,[],(n,path)=>{
+        if(n.type!=='item') return;
+        const marks=n.reviews&&n.reviews.marks, customDone=n.reviews&&n.reviews.customDone;
+        const scheme=n.reviews&&n.reviews.scheme;
+        const info=computeDueInfo(scheme,marks,n.reviews&&n.reviews.weeklyMastered);
+        if(!info.due) return;
+        rows.push({
+          id:n.id, title:n.title||'(chưa đặt tên)', path:path.join(' › ')||'—',
+          reason:info.reason,
+          reviewCount:marksCount(marks,customDone), reviewTotal:scheme==='v2'?15:10,
+          reviewedToday:reviewedTodayCheck(marks,customDone),
+          url:'tinh-nghe.html?open='+encodeURIComponent(n.id), _app:'静听 Nghe', _cls:'o'
+        });
+      });
+    }
+  }catch(e){}
+  return rows;
+}
+async function collectTreeApp(dbName,fileUrl,label,cls){
+  const rows=[];
+  try{
+    const db=await idbGetReadOnly(dbName,'meta','db');
+    if(db&&Array.isArray(db.tree)){
+      walkWithPath(db.tree,[],(n,path)=>{
+        if(n.type!=='passage') return;
+        const marks=n.reps, customDone=n.repCustomDone;
+        const scheme=n.weeklyScheme;
+        const info=computeDueInfo(scheme,marks,n.weeklyMastered);
+        if(!info.due) return;
+        rows.push({
+          id:n.id, title:n.name||'(chưa đặt tên)', path:path.join(' › ')||'—',
+          reason:info.reason,
+          reviewCount:marksCount(marks,customDone), reviewTotal:scheme==='v2'?15:10,
+          reviewedToday:reviewedTodayCheck(marks,customDone),
+          url:fileUrl+'?open='+encodeURIComponent(n.id), _app:label, _cls:cls
+        });
+      });
+    }
+  }catch(e){}
+  return rows;
+}
+async function collectVietHSK(){
+  const rows=[];
+  const TYPES_VI={dang1:'Dạng 1 · Ứng dụng',dang2:'Dạng 2 · Nghị luận'};
+  try{
+    const entries=await idbGetReadOnly('han-writing-idb','meta','entries');
+    if(Array.isArray(entries)){
+      entries.forEach(e=>{
+        const marks=e.reps, customDone=e.repCustomDone;
+        const scheme=e.weeklyScheme;
+        const info=computeDueInfo(scheme,marks,e.weeklyMastered);
+        if(!info.due) return;
+        rows.push({
+          id:e.id, title:e.title||'(chưa đặt tên)',
+          path:(TYPES_VI[e.type]||'')+(e.sub?' › '+e.sub:''),
+          reason:info.reason,
+          reviewCount:marksCount(marks,customDone), reviewTotal:scheme==='v2'?15:10,
+          reviewedToday:reviewedTodayCheck(marks,customDone),
+          url:'SoLuyenViet_HSK.html?open='+encodeURIComponent(e.id), _app:'汉写 Viết', _cls:'p'
+        });
+      });
+    }
+  }catch(e){}
+  return rows;
+}
+// Bản dự phòng cũ (localStorage do app tự báo cáo) — chỉ dùng khi đọc IndexedDB không ra gì,
+// phòng trường hợp trình duyệt cũ không hỗ trợ, hoặc lần đầu chuyển đổi.
+function collectFallback(key,label,cls){
+  try{ const raw=localStorage.getItem(key); if(raw){ const rows=JSON.parse(raw)||[]; return rows.map(r=>Object.assign({},r,{_app:label,_cls:cls})); } }catch(e){}
+  return [];
+}
+
+let _rendering=false;
+async function renderWeeklyBanner(){
+  if(_rendering) return; _rendering=true;
+  try{
+    const todayDow=new Date().getDay();
+    const box=document.getElementById('weeklyWrap');
+
+    const [nghe,doc,noi,viet]=await Promise.all([
+      collectTinhNghe(),
+      collectTreeApp('han-reader-idb2','reader.html','汉读 Đọc','j'),
+      collectTreeApp('han-speaking-idb2','noi.html','汉说 Nói','b'),
+      collectVietHSK()
+    ]);
+    // Các hàng từ collectXxx() ở trên đã tự lọc "đến hạn hôm nay" bên trong rồi (đọc thẳng
+    // IndexedDB, hiểu đúng cả hệ mốc cũ lẫn mới) — chỉ khi KHÔNG đọc được IndexedDB (trình
+    // duyệt cũ, hoặc app đó chưa từng mở) mới cần lọc thêm theo kiểu cũ (dow=thứ) từ bản dự
+    // phòng trong localStorage.
+    const fallbackFilter=rows=>(todayDow===0?[]:rows.filter(r=>r.dow===todayDow && !r.mastered));
+    let due=[
+      ...(nghe.length?nghe:fallbackFilter(collectFallback('han_weekly_index_tinhnghe','静听 Nghe','o'))),
+      ...(doc.length?doc:fallbackFilter(collectFallback('han_weekly_index_reader','汉读 Đọc','j'))),
+      ...(noi.length?noi:fallbackFilter(collectFallback('han_weekly_index_noi','汉说 Nói','b'))),
+      ...(viet.length?viet:fallbackFilter(collectFallback('han_weekly_index_soluyenviet','汉写 Viết','p'))),
+    ];
+
+    if(!due.length){ box.innerHTML=''; return; }
+    const todayLabel=WEEKDAY_VN[todayDow];
+    const rows=due.map(r=>`
+      <a class="weekly-row${r.reviewedToday?' wr-done':''}" href="${esc(r.url)}">
+        ${r.reviewedToday?'<span class="wr-check" title="Đã ôn hôm nay">✅</span>':''}
+        <span class="wr-app ${r._cls} tag">${esc(r._app)}</span>
+        <div class="wr-info">
+          <div class="wr-title">${esc(r.title)}</div>
+          <div class="wr-path">${esc(r.path||'')}</div>
+          ${r.reason?`<div class="wr-reason">${esc(r.reason)}</div>`:''}
+        </div>
+        <span class="wr-count">Đã ôn ${r.reviewCount||0}/${r.reviewTotal||10} lần</span>
+        <span class="wr-arrow">→</span>
+      </a>`).join('');
+    box.innerHTML=`<div class="weekly-banner">
+      <h2>📅 Nhắc ôn ${todayLabel} — ${due.length} bài</h2>
+      <div class="wk-sub">Gộp từ tất cả app — luôn mới nhất, không cần mở qua từng app trước. Mở bài ra rồi bấm "✅ Đã thuộc" trong bài đó để ngừng nhắc.</div>
+      ${rows}
+    </div>`;
+  }finally{ _rendering=false; }
+}
+renderWeeklyBanner();
+// 🔄 Tự làm mới khi quay lại tab này (không cần nhớ bấm F5)
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') renderWeeklyBanner(); });
+window.addEventListener('focus',renderWeeklyBanner);
+window.addEventListener('pageshow',renderWeeklyBanner);
+</script>
+</body>
+</html>
